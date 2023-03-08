@@ -5,7 +5,6 @@
 
 using namespace std;
 
-
 int convertToNum(char card)
 {
     switch (card)
@@ -28,85 +27,81 @@ int convertToNum(char card)
 }
 
 
-void moveToWinner(int& winner_score, vector<int>& winner, vector<int>& defeated, int part = 1, bool allCards = true)
+void moveToWinner(vector<int>& winner, vector<int>& defeated, int &numWar, bool allCards = true)
 {
-    copy(winner.begin(), winner.begin() + (part * 3) + 1, back_inserter(winner));
-    winner.erase(winner.begin(), winner.begin() + (part * 3) + 1);
+    copy(winner.begin(), winner.begin() + (numWar * 4) + 1, back_inserter(winner));
+    winner.erase(winner.begin(), winner.begin() + (numWar * 4) + 1);
 
     if (allCards)
     {
-        copy(defeated.begin(), defeated.begin() + (part * 3) + 1, back_inserter(winner));
-        defeated.erase(defeated.begin(), defeated.begin() + (part * 3) + 1);
+        copy(defeated.begin(), defeated.begin() + (numWar * 4) + 1, back_inserter(winner));
+        defeated.erase(defeated.begin(), defeated.begin() + (numWar * 4) + 1);
     }
     else
     {
         copy(defeated.begin(), defeated.end(), back_inserter(winner));
         defeated.erase(defeated.begin(), defeated.end());
     }
-    ++winner_score;
-}
-
-void war(int& p1_score, int& p2_score, vector<int>& p1, vector<int>& p2, int part = 1)
-{
-    int warScore = 0;
-    int warScore2 = 0;
-
-    for (int i = 1; i <= (part * 3) && !p1.empty() && !p2.empty(); ++i)
-    {
-        if (i > (p1.size() - 1))
-        {
-            moveToWinner(p2_score, p2, p1, part, false);
-            return;
-        }
-        else if (i > (p2.size() - 1))
-        {
-            moveToWinner(p1_score, p1, p2, part, false);
-            return;
-        }
-        else if (p1.at(i) == p2.at(i))
-        {
-            break;
-        }
-
-        (p1.at(i) > p2.at(i)) ? ++warScore : ++warScore2;
-    }
-
-    if (warScore > warScore2)
-    {
-        moveToWinner(p1_score, p1, p2, part);
-    }
-    else if (warScore < warScore2)
-    {
-        moveToWinner(p2_score, p2, p1, part);
-    }
-    else if (warScore == warScore2)
-    {
-        war(p1_score, p2_score, p1, p2, ++part);
-    }
 }
 
 
-void battle(int& p1_score, int& p2_score, vector<int>& pc1, vector<int>& pc2)
+bool hasCards(vector<int>& pcards, int& numWar)
 {
-    if (pc1.front() > pc2.front())
+    return  ((numWar * 4) + 2) > pcards.size();
+}
+
+
+void battle(int& p1_score, int& p2_score, vector<int>& pc1, vector<int>& pc2, bool &isPAT, int numWar = 0)
+{
+    if (*(pc1.begin() + (numWar * 4)) > *(pc2.begin() + (numWar * 4)))
     {
-        pc1.push_back(pc1.front());
-        pc1.push_back(pc2.front());
-        pc1.erase(pc1.begin());
-        pc2.erase(pc2.begin());
+        if (numWar > 0)
+        {
+            moveToWinner(pc1, pc2, numWar);
+        }
+        else
+        {
+            pc1.push_back(pc1.front());
+            pc1.push_back(pc2.front());
+            pc1.erase(pc1.begin());
+            pc2.erase(pc2.begin());
+        }
         ++p1_score;
+       
     }
-    else if (pc1.front() < pc2.front())
+    else if (*(pc1.begin() + (numWar * 4)) < *(pc2.begin() + (numWar * 4)))
     {
-        pc2.push_back(pc2.front());
-        pc2.push_back(pc1.front());
-        pc1.erase(pc1.begin());
-        pc2.erase(pc2.begin());
+        if (numWar > 0)
+        {
+            moveToWinner(pc2, pc1, numWar);
+        }
+        else
+        {
+            pc2.push_back(pc2.front());
+            pc2.push_back(pc1.front());
+            pc1.erase(pc1.begin());
+            pc2.erase(pc2.begin());
+        }
         ++p2_score;
     }
-    else if (pc1.front() == pc2.front())
+    else if (*(pc1.begin() + (numWar * 4)) == *(pc2.begin() + (numWar * 4)))
     {
-        war(p1_score, p2_score, pc1, pc2);
+        if (hasCards(pc1, numWar))
+        {
+            moveToWinner(pc2, pc1, numWar, false);
+            isPAT = true;
+            return;
+        }
+        else if (hasCards(pc2, numWar))
+        {
+            moveToWinner(pc1, pc2, numWar, false);
+            isPAT = true;
+            return;
+        }
+        else
+        {
+            battle(p1_score, p2_score, pc1, pc2, isPAT, ++numWar);
+        }
     }
 }
 
@@ -142,7 +137,8 @@ int main()
     // game process
     int p1_score = 0;
     int p2_score = 0;
-
+    int round = 0;
+    bool isPAT = false;
 
     while (!pcards.empty() && !pcards2.empty())
     {
@@ -158,16 +154,17 @@ int main()
         }
         cout << endl;
 
-        battle(p1_score, p2_score, pcards, pcards2);
+        ++round;
+        battle(p1_score, p2_score, pcards, pcards2, isPAT);
     }
 
-    if (p1_score == p2_score)
+    if (isPAT)
     {
         cout << "PAT" << endl;
     }
     else
     {
-        cout << to_string(p1_score) + " " + to_string(p2_score) << endl;
+        cout << (p1_score > p2_score ? "1 " : "2 ") + to_string(round) << endl;
     }
 
     return 0;
