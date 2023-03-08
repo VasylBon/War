@@ -5,6 +5,7 @@
 
 using namespace std;
 
+// converting cards into a numerical equivalent
 int convertToNum(char card)
 {
     switch (card)
@@ -26,8 +27,8 @@ int convertToNum(char card)
     return 0;
 }
 
-
-void moveToWinner(vector<int>& winner, vector<int>& defeated, int &numWar, bool allCards = true)
+//  move playing cards to winner stack
+void moveToWinner(vector<int>& winner, vector<int>& defeated, int& numWar, bool allCards = true)
 {
     copy(winner.begin(), winner.begin() + (numWar * 4) + 1, back_inserter(winner));
     winner.erase(winner.begin(), winner.begin() + (numWar * 4) + 1);
@@ -44,14 +45,14 @@ void moveToWinner(vector<int>& winner, vector<int>& defeated, int &numWar, bool 
     }
 }
 
-
+// checking whether the player has enough cards for the war
 bool hasCards(vector<int>& pcards, int& numWar)
 {
     return  ((numWar * 4) + 2) > pcards.size();
 }
 
-
-void battle(int& p1_score, int& p2_score, vector<int>& pc1, vector<int>& pc2, bool &isPAT, int numWar = 0)
+// implementation of the round rules to determine the winner
+void battle(int& p1_score, int& p2_score, vector<int>& pc1, vector<int>& pc2, bool& isPAT, int numWar = 0)
 {
     if (*(pc1.begin() + (numWar * 4)) > *(pc2.begin() + (numWar * 4)))
     {
@@ -67,7 +68,7 @@ void battle(int& p1_score, int& p2_score, vector<int>& pc1, vector<int>& pc2, bo
             pc2.erase(pc2.begin());
         }
         ++p1_score;
-       
+
     }
     else if (*(pc1.begin() + (numWar * 4)) < *(pc2.begin() + (numWar * 4)))
     {
@@ -133,8 +134,10 @@ int main()
         cin >> cardp_2; cin.ignore();
         pcards2.push_back(convertToNum(cardp_2[0]));
     }
+
+    // begin game
     cout << "Begin" << endl;
-    // game process
+
     int p1_score = 0;
     int p2_score = 0;
     int round = 0;
